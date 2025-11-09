@@ -1,0 +1,45 @@
+### Merkez mode with defaults
+POST http://127.0.0.1:8080/generate
+Content-Type: application/json
+Accept: image/png
+
+{
+  "w": 256,
+  "h": 256,
+  "tiles": "2x2*400,2x1*300,1x1*100",
+  "seed": "demo",
+  "mode": "merkez"
+}
+
+### Agirlik mode with custom cap and multiplier
+POST http://127.0.0.1:8080/generate
+Content-Type: application/json
+Accept: image/png
+
+{
+  "w": 384,
+  "h": 256,
+  "tiles": "1x1*100,2x1*150,3x3*40",
+  "ka": 1.5,
+  "cap": 600,
+  "mode": "agirlik",
+  "rot": 0
+}
+
+### Adalar mode using legacy counts
+POST http://127.0.0.1:8080/generate
+Content-Type: application/json
+Accept: image/png
+
+{
+  "w": 512,
+  "h": 512,
+  "n22": 500,
+  "n21": 200,
+  "n11": 100,
+  "mode": "adalar",
+  "islands": 5,
+  "islandRFrac": 0.3
+}
+
+

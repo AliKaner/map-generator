@@ -1,0 +1,167 @@
+openapi: 3.0.3
+info:
+  title: PNG Map Generator API
+  version: 1.0.0
+  description: |
+    HTTP service that generates procedural PNG maps based on tile specifications.
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /generate:
+    post:
+      summary: Generate a PNG map
+      operationId: generateMap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MapRequest'
+            examples:
+              merkez:
+                summary: Merkez mode with defaults
+                value:
+                  w: 256
+                  h: 256
+                  tiles: 2x2*400,2x1*300,1x1*100
+                  mode: merkez
+                  seed: demo
+              adalar:
+                summary: Islands mode with legacy counts
+                value:
+                  w: 512
+                  h: 512
+                  n22: 500
+                  n21: 200
+                  n11: 100
+                  mode: adalar
+                  islands: 5
+                  islandRFrac: 0.3
+      responses:
+        '200':
+          description: Generated PNG image
+          headers:
+            X-Tile-Batches:
+              description: Distinct tile batches after cap scaling.
+              schema:
+                type: integer
+            X-Tile-Count:
+              description: Total tile placements after scaling.
+              schema:
+                type: integer
+            X-Seed:
+              description: Seed value used for random generation.
+              schema:
+                type: string
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /healthz:
+    get:
+      summary: Health check
+      operationId: health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    MapRequest:
+      type: object
+      properties:
+        w:
+          type: integer
+          minimum: 1
+          description: Map width in pixels. Defaults to 100.
+        h:
+          type: integer
+          minimum: 1
+          description: Map height in pixels. Defaults to 100.
+        tiles:
+          type: string
+          description: Comma-separated list of tile specs in WxH*COUNT format.
+          example: 1x1*100,2x1*300,10x10*5
+        ka:
+          type: number
+          format: float
+          description: Global multiplier for tile counts. Defaults to 1.0.
+        cap:
+          type: integer
+          description: Maximum total tile placements. Defaults to 1000; negative disables the cap.
+        mode:
+          type: string
+          enum: [merkez, agirlik, adalar, iki-kita]
+          description: Map generation mode. Defaults to merkez.
+        rings:
+          type: integer
+          description: Ring count for merkez mode. Defaults to 10.
+        seed:
+          type: string
+          description: Deterministic seed for repeatable maps.
+        logTone:
+          type: integer
+          enum: [0, 1]
+          description: Use logarithmic toning (1) or linear (0). Defaults to 1.
+        brownCap:
+          type: integer
+          description: Tone saturation limit for overlaps. Defaults to 8.
+        bgA:
+          type: integer
+          minimum: 0
+          maximum: 255
+          description: Background alpha value. Defaults to 0.
+        islands:
+          type: integer
+          description: Island count when mode is adalar. Defaults to 4.
+        islandRFrac:
+          type: number
+          format: float
+          description: Island radius fraction. Defaults to 0.25.
+        rot:
+          type: integer
+          enum: [0, 1]
+          description: Allow random rotation of non-square tiles. Defaults to 1.
+        n22:
+          type: integer
+          description: Legacy tile count for 2x2 tiles.
+        n21:
+          type: integer
+          description: Legacy tile count for 2x1 tiles.
+        n11:
+          type: integer
+          description: Legacy tile count for 1x1 tiles.
+      additionalProperties: false
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+
